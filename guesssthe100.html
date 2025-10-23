@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GuessThe100</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600;900&family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #0077ff;
+      --accent2: #22d3ee;
+      --text: #1e293b;
+      --muted: #64748b;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(160deg, #e0f2ff 0%, #ffffff 100%);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-size: 52px;
+      font-weight: 900;
+      text-align: center;
+      margin: 20px 0 30px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .game {
+      background: rgba(255,255,255,0.9);
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 700px;
+      text-align: center;
+      padding: 40px;
+      position: relative;
+    }
+
+    .question {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 40px;
+    }
+
+    .choices {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .choice {
+      background: #f0f9ff;
+      border: 2px solid #bae6fd;
+      border-radius: 14px;
+      padding: 30px 50px;
+      font-size: 30px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      color: var(--text);
+    }
+
+    .choice:hover {
+      transform: translateY(-8px) scale(1.05);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    }
+
+    .choice.correct {
+      background: #dcfce7;
+      border-color: #4ade80;
+      transform: scale(1.1);
+    }
+
+    .choice.wrong {
+      background: #fee2e2;
+      border-color: #ef4444;
+      transform: scale(0.95);
+    }
+
+    .counter {
+      position: fixed;
+      bottom: 25px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 20px;
+      padding: 10px 30px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 36px;
+      color: var(--accent);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: pop 0.5s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <h1>GuessThe100</h1>
+  <div class="game">
+    <div class="question" id="question">Caricamento domanda...</div>
+    <div class="choices" id="choices"></div>
+  </div>
+
+  <div class="counter">💯 Punti: <span id="score">0</span></div>
+
+  <script>
+    const DATA = [
+      {q: "Quante persone su 100 bevono caffè ogni giorno?", pct: 68},
+      {q: "Quante persone su 100 hanno un animale domestico?", pct: 57},
+      {q: "Quante persone su 100 credono negli alieni?", pct: 41},
+      {q: "Quante persone su 100 controllano il telefono appena svegli?", pct: 82},
+      {q: "Quante persone su 100 dormono meno di 6 ore per notte?", pct: 36},
+      {q: "Quante persone su 100 preferiscono la pizza alla pasta?", pct: 68},
+      {q: "Quante persone su 100 ascoltano musica ogni giorno?", pct: 91},
+      {q: "Quante persone su 100 piangono guardando un film?", pct: 77},
+      {q: "Quante persone su 100 pensano che l'IA cambierà il mondo in meglio?", pct: 47},
+      {q: "Quante persone su 100 hanno ordinato cibo online nell'ultimo mese?", pct: 62},
+      {q: "Quante persone su 100 hanno visitato un altro continente?", pct: 29},
+      {q: "Quante persone su 100 preferiscono l'estate all'inverno?", pct: 70},
+      {q: "Quante persone su 100 hanno paura del buio?", pct: 25},
+      {q: "Quante persone su 100 hanno una playlist per allenarsi?", pct: 58},
+      {q: "Quante persone su 100 credono nella fortuna?", pct: 52},
+      {q: "Quante persone su 100 hanno mai vinto un premio?", pct: 19},
+      {q: "Quante persone su 100 amano i supereroi Marvel?", pct: 88},
+      {q: "Quante persone su 100 hanno fatto un viaggio da soli?", pct: 33},
+      {q: "Quante persone su 100 bevono tè verde?", pct: 42},
+      {q: "Quante persone su 100 parlano più di una lingua?", pct: 37},
+      {q: "Quante persone su 100 hanno una tattoo?", pct: 29},
+      {q: "Quante persone su 100 hanno letto un libro nell'ultimo mese?", pct: 51},
+      {q: "Quante persone su 100 hanno corso una maratona?", pct: 7},
+      {q: "Quante persone su 100 sanno cucinare una torta?", pct: 64},
+      {q: "Quante persone su 100 hanno piantato un albero?", pct: 22},
+      {q: "Quante persone su 100 hanno fatto volontariato?", pct: 31},
+      {q: "Quante persone su 100 usano i social media più di 2 ore al giorno?", pct: 59},
+      {q: "Quante persone su 100 hanno mai fatto yoga?", pct: 28},
+      {q: "Quante persone su 100 hanno un account Netflix?", pct: 85},
+      {q: "Quante persone su 100 hanno avuto un animale domestico durante l’infanzia?", pct: 73},
+      {q: "Quante persone su 100 hanno paura dei ragni?", pct: 43},
+      {q: "Quante persone su 100 hanno provato il sushi?", pct: 66},
+      {q: "Quante persone su 100 hanno guidato una moto?", pct: 34},
+      {q: "Quante persone su 100 hanno suonato uno strumento musicale?", pct: 48},
+      {q: "Quante persone su 100 hanno paura dei serpenti?", pct: 37},
+      {q: "Quante persone su 100 hanno visitato più di 5 paesi?", pct: 21},
+      {q: "Quante persone su 100 hanno parlato in pubblico regolarmente?", pct: 16},
+      {q: "Quante persone su 100 hanno fatto una crociera?", pct: 12},
+      {q: "Quante persone su 100 hanno piantato un fiore?", pct: 54},
+      {q: "Quante persone su 100 hanno fatto una maratona di serie TV?", pct: 61},
+      {q: "Quante persone su 100 hanno mai fatto campeggio?", pct: 44},
+      {q: "Quante persone su 100 hanno giocato ai videogiochi oggi?", pct: 72}
+    ];
+
+    let score = 0, index = 0;
+    const qEl = document.getElementById('question');
+    const cEl = document.getElementById('choices');
+    const sEl = document.getElementById('score');
+
+    function nextQuestion() {
+      if(index >= DATA.length){
+        qEl.textContent = '🎉 Hai completato tutte le domande! Grazie per aver giocato a GuessThe100 💯';
+        cEl.innerHTML = '<button onclick="restart()">Rigioca</button>';
+        return;
+      }
+
+      const item = DATA[index];
+      qEl.textContent = item.q;
+      cEl.innerHTML = '';
+
+      const opts = [item.pct + (Math.random() < 0.5 ? -10 : 10), item.pct];
+      opts.sort(() => Math.random() - 0.5);
+
+      opts.forEach(val => {
+        const btn = document.createElement('div');
+        btn.className = 'choice';
+        btn.textContent = val + '%';
+        btn.onclick = () => select(val, item.pct, btn);
+        cEl.appendChild(btn);
+      });
+    }
+
+    function select(choice, correct, el) {
+      const buttons = document.querySelectorAll('.choice');
+      buttons.forEach(b => b.onclick = null);
+
+      if (Math.abs(choice - correct) < 5) {
+        el.classList.add('correct');
+        score++;
+        animate(el, true);
+      } else {
+        el.classList.add('wrong');
+        if (score > 0) score--;
+        animate(el, false);
+      }
+
+      sEl.textContent = score;
+      setTimeout(() => { index++; nextQuestion(); }, 1500);
+    }
+
+    function animate(el, success) {
+      el.animate([
+        { transform: 'scale(1)', filter: 'brightness(1)' },
+        { transform: success ? 'scale(1.2)' : 'scale(0.9)', filter: success ? 'brightness(1.5)' : 'brightness(0.5)' },
+        { transform: 'scale(1)', filter: 'brightness(1)' }
+      ], { duration: 600, easing: 'ease-out' });
+    }
+
+    function restart(){
+      score=0; index=0; sEl.textContent=score; nextQuestion();
+    }
+
+    nextQuestion();
+  </script>
+</body>
+</html>
